@@ -2,9 +2,7 @@
  * @file pixy2.cpp
  * @brief file containing the pixy2 class programs, compatible with mbed-os 6 (baremetal or multithread) using UART interface with non blocking functions
  * @author Hugues Angelis - Théo Le Paih - Wael Hazami
- * @note Comments are in french
- * @date December 2022
- * @version 3
+ * @date March 2022
  */
  
 #include "pixy2.h"
@@ -194,12 +192,12 @@ PIXY2::T_pixy2ErrorCode PIXY2::pixy2_sndSetServo (Word s0, Word s1){
     msg.frame.header.pixSync = PIXY2_SYNC;
     msg.frame.header.pixType = PIXY2_SET_SERVOS;
     msg.frame.header.pixLength = dataSize;
-    for (i=0;i<4;i++) {
-        if (i<2)    tmp.mot = s0;
-        else        tmp.mot = s1;
-        msg.frame.data[i] = tmp.octet[i%2];
-    }
-
+    tmp.mot = s0;
+    msg.frame.data[0] = tmp.octet[0];
+    msg.frame.data[1] = tmp.octet[1];
+    tmp.mot = s1;
+    msg.frame.data[2] = tmp.octet[0];
+    msg.frame.data[3] = tmp.octet[1];
     do {
         while(!_Pixy2->writable());
         _Pixy2->write(&msg.data[i],1);
@@ -389,9 +387,9 @@ PIXY2::T_pixy2ErrorCode PIXY2::pixy2_sndGetRGB (Word x, Word y, Byte saturate){
 /*  La fonction est bloquante à l'envoi (pas vraiment le choix), mais elle est non bloquante en réception. On essayera de faire une fonction non bloquante en envoi avec write, mais c'est pas la priorité.
 Le principe c'est de stocker dans un buffer circulaire les données au fur et à mesure qu'elle sont reçues et de traiter uniquement en castant les infos. Pour cela, il faut recevoir et stocker. */
 
-PIXY2::T_pixy2ErrorCode PIXY2::pixy2_getVersion (T_pixy2Version *ptrVersion){
+PIXY2::T_pixy2ErrorCode PIXY2::pixy2_getVersion (T_pixy2Version **ptrVersion){
 
-    T_pixy2RcvHeader*   msg = (T_pixy2RcvHeader*) &Pixy2_buffer[hPointer];
+    T_pixy2RcvHeader    *msg = (T_pixy2RcvHeader*) &Pixy2_buffer[hPointer];
     T_pixy2ErrorCode    cr = PIXY2_OK;
     
     switch (etat) {
@@ -410,10 +408,10 @@ PIXY2::T_pixy2ErrorCode PIXY2::pixy2_getVersion (T_pixy2Version *ptrVersion){
                 }
             }
             if (msg->pixType == PIXY2_REP_VERS) {                                   // On vérifie que la trame est du type convenable (REPONSE VERSION)
-                ptrVersion = (T_pixy2Version*) &Pixy2_buffer[dPointer];             // On mappe le pointeur de structure sur le buffer de réception.         
+                *ptrVersion =   (T_pixy2Version*) &Pixy2_buffer[dPointer];          // On mappe le pointeur de structure sur le buffer de réception.         
             } else {                                                                // Si ce n'est pas le bon type
                 if (msg->pixType == PIXY2_REP_ERROR) {                              // Cela pourrait être une trame d'erreur
-                    cr = (T_pixy2ErrorCode) Pixy2_buffer[dPointer];                 // Si c'est le cas, on copie le code d'erreur reçu dans la variable de retour
+                    cr = *(T_pixy2ErrorCode*) &Pixy2_buffer[dPointer];              // Si c'est le cas, on copie le code d'erreur reçu dans la variable de retour
                 } else cr = PIXY2_TYPE_ERROR;                                       // Si le type ne correspond à rien de normal on signale une erreur de type.
             }
             etat = idle;                                                            // On annonce que la pixy est libre
@@ -426,9 +424,9 @@ PIXY2::T_pixy2ErrorCode PIXY2::pixy2_getVersion (T_pixy2Version *ptrVersion){
     return cr;
 }
 
-PIXY2::T_pixy2ErrorCode PIXY2::pixy2_getResolution (T_pixy2Resolution *ptrResolution){
+PIXY2::T_pixy2ErrorCode PIXY2::pixy2_getResolution (T_pixy2Resolution **ptrResolution){
 
-    T_pixy2RcvHeader*   msg = (T_pixy2RcvHeader*) &Pixy2_buffer[hPointer];
+    T_pixy2RcvHeader    *msg = (T_pixy2RcvHeader*) &Pixy2_buffer[hPointer];
     T_pixy2ErrorCode    cr = PIXY2_OK;
     
     switch (etat) {
@@ -447,10 +445,10 @@ PIXY2::T_pixy2ErrorCode PIXY2::pixy2_getResolution (T_pixy2Resolution *ptrResolu
                 }
             }
             if (msg->pixType == PIXY2_REP_RESOL) {                                  // On vérifie que la trame est du type convenable (REPONSE RESOLUTION)
-                ptrResolution = (T_pixy2Resolution*) &Pixy2_buffer[dPointer];       // On mappe le pointeur de structure sur le buffer de réception.
+                *ptrResolution = (T_pixy2Resolution*) &Pixy2_buffer[dPointer];      // On mappe le pointeur de structure sur le buffer de réception.
             } else {                                                                // Si ce n'est pas le bon type
                 if (msg->pixType == PIXY2_REP_ERROR) {                              // Cela pourrait être une trame d'erreur
-                    cr = (T_pixy2ErrorCode) Pixy2_buffer[dPointer];                 // Si c'est le cas, on copie le code d'erreur reçu dans la variable de retour
+                    cr = *(T_pixy2ErrorCode*) &Pixy2_buffer[dPointer];              // Si c'est le cas, on copie le code d'erreur reçu dans la variable de retour
                 } else cr = PIXY2_TYPE_ERROR;                                       // Si le type ne correspond à rien de normal on signale une erreur de type.
             }
             etat = idle;                                                            // On annoce que la pixy est libre
@@ -465,7 +463,7 @@ PIXY2::T_pixy2ErrorCode PIXY2::pixy2_getResolution (T_pixy2Resolution *ptrResolu
 
 PIXY2::T_pixy2ErrorCode PIXY2::pixy2_setCameraBrightness (Byte brightness){
 
-    T_pixy2RcvHeader*   msg = (T_pixy2RcvHeader*) &Pixy2_buffer[hPointer];
+    T_pixy2RcvHeader    *msg = (T_pixy2RcvHeader*) &Pixy2_buffer[hPointer];
     T_pixy2ErrorCode    cr = PIXY2_OK;
     
     switch (etat) {
@@ -485,7 +483,7 @@ PIXY2::T_pixy2ErrorCode PIXY2::pixy2_setCameraBrightness (Byte brightness){
             }
             if ((msg->pixType == PIXY2_REP_ACK) || (msg->pixType == PIXY2_REP_ERROR)) {
                                                                                     // On vérifie que la trame est du type convenable (ACK ou ERREUR)
-                cr = (T_pixy2ErrorCode) Pixy2_buffer[dPointer];                     // Si c'est le cas, on copie le code d'erreur reçu dans la variable de retour
+                cr = *(T_pixy2ErrorCode*) &Pixy2_buffer[dPointer];                  // Si c'est le cas, on copie le code d'erreur reçu dans la variable de retour
             } else cr = PIXY2_TYPE_ERROR;                                           // Si le type ne correspond à rien de normal on signale une erreur de type.
             etat = idle;                                                            // On annoce que la pixy est libre
             break;
@@ -499,7 +497,7 @@ PIXY2::T_pixy2ErrorCode PIXY2::pixy2_setCameraBrightness (Byte brightness){
 
 PIXY2::T_pixy2ErrorCode PIXY2::pixy2_setServos (Word s0, Word s1){
 
-    T_pixy2RcvHeader*   msg = (T_pixy2RcvHeader*) &Pixy2_buffer[hPointer];
+    T_pixy2RcvHeader    *msg = (T_pixy2RcvHeader*) &Pixy2_buffer[hPointer];
     T_pixy2ErrorCode    cr = PIXY2_OK;
     
     switch (etat) {
@@ -519,7 +517,7 @@ PIXY2::T_pixy2ErrorCode PIXY2::pixy2_setServos (Word s0, Word s1){
             }
             if ((msg->pixType == PIXY2_REP_ACK) || (msg->pixType == PIXY2_REP_ERROR)) {
                                                                                     // On vérifie que la trame est du type convenable (ACK ou ERREUR)
-                cr = (T_pixy2ErrorCode) Pixy2_buffer[dPointer];                     // Si c'est le cas, on copie le code d'erreur reçu dans la variable de retour
+                cr = *(T_pixy2ErrorCode*) &Pixy2_buffer[dPointer];                  // Si c'est le cas, on copie le code d'erreur reçu dans la variable de retour
             } else cr = PIXY2_TYPE_ERROR;                                           // Si le type ne correspond à rien de normal on signale une erreur de type.
             etat = idle;                                                            // On annoce que la pixy est libre
             break;
@@ -533,7 +531,7 @@ PIXY2::T_pixy2ErrorCode PIXY2::pixy2_setServos (Word s0, Word s1){
 
 PIXY2::T_pixy2ErrorCode PIXY2::pixy2_setLED (Byte red, Byte green, Byte blue){
 
-    T_pixy2RcvHeader*   msg = (T_pixy2RcvHeader*) &Pixy2_buffer[hPointer];
+    T_pixy2RcvHeader    *msg = (T_pixy2RcvHeader*) &Pixy2_buffer[hPointer];
     T_pixy2ErrorCode    cr = PIXY2_OK;
     
     switch (etat) {
@@ -553,7 +551,7 @@ PIXY2::T_pixy2ErrorCode PIXY2::pixy2_setLED (Byte red, Byte green, Byte blue){
             }
             if ((msg->pixType == PIXY2_REP_ACK) || (msg->pixType == PIXY2_REP_ERROR)) {
                                                                                     // On vérifie que la trame est du type convenable (ACK ou ERREUR)
-                cr = (T_pixy2ErrorCode) Pixy2_buffer[dPointer];                     // Si c'est le cas, on copie le code d'erreur reçu dans la variable de retour
+                cr = *(T_pixy2ErrorCode*) &Pixy2_buffer[dPointer];                  // Si c'est le cas, on copie le code d'erreur reçu dans la variable de retour
             } else cr = PIXY2_TYPE_ERROR;                                           // Si le type ne correspond à rien de normal on signale une erreur de type.
             etat = idle;                                                            // On annoce que la pixy est libre
             break;
@@ -567,7 +565,7 @@ PIXY2::T_pixy2ErrorCode PIXY2::pixy2_setLED (Byte red, Byte green, Byte blue){
 
 PIXY2::T_pixy2ErrorCode PIXY2::pixy2_setLamp (Byte upper, Byte lower){
 
-    T_pixy2RcvHeader*   msg = (T_pixy2RcvHeader*) &Pixy2_buffer[hPointer];
+    T_pixy2RcvHeader    *msg = (T_pixy2RcvHeader*) &Pixy2_buffer[hPointer];
     T_pixy2ErrorCode    cr = PIXY2_OK;
     
     switch (etat) {
@@ -587,7 +585,7 @@ PIXY2::T_pixy2ErrorCode PIXY2::pixy2_setLamp (Byte upper, Byte lower){
             }
             if ((msg->pixType == PIXY2_REP_ACK) || (msg->pixType == PIXY2_REP_ERROR)) {
                                                                                     // On vérifie que la trame est du type convenable (ACK ou ERREUR)
-                cr = (T_pixy2ErrorCode) Pixy2_buffer[dPointer];                     // Si c'est le cas, on copie le code d'erreur reçu dans la variable de retour
+                cr = *(T_pixy2ErrorCode*) &Pixy2_buffer[dPointer];                  // Si c'est le cas, on copie le code d'erreur reçu dans la variable de retour
             } else cr = PIXY2_TYPE_ERROR;                                           // Si le type ne correspond à rien de normal on signale une erreur de type.
             etat = idle;                                                            // On annoce que la pixy est libre
             break;
@@ -599,9 +597,9 @@ PIXY2::T_pixy2ErrorCode PIXY2::pixy2_setLamp (Byte upper, Byte lower){
     return cr;
 }
 
-PIXY2::T_pixy2ErrorCode PIXY2::pixy2_getFPS (T_pixy2ReturnCode *framerate){
+PIXY2::T_pixy2ErrorCode PIXY2::pixy2_getFPS (T_pixy2ReturnCode **framerate){
 
-    T_pixy2RcvHeader*   msg = (T_pixy2RcvHeader*) &Pixy2_buffer[hPointer];
+    T_pixy2RcvHeader    *msg = (T_pixy2RcvHeader*) &Pixy2_buffer[hPointer];
     T_pixy2ErrorCode    cr = PIXY2_OK;
     
     switch (etat) {
@@ -620,10 +618,10 @@ PIXY2::T_pixy2ErrorCode PIXY2::pixy2_getFPS (T_pixy2ReturnCode *framerate){
                 }
             }
             if (msg->pixType == PIXY2_REP_FPS) {                                    // On vérifie que la trame est du type convenable (REPONSE FPS)
-                framerate = (T_pixy2ReturnCode*) &Pixy2_buffer[dPointer];           // On mappe le pointeur de structure sur le buffer de réception.
+                *framerate = (T_pixy2ReturnCode*) &Pixy2_buffer[dPointer];           // On mappe le pointeur de structure sur le buffer de réception.
             } else {                                                                // Si ce n'est pas le bon type
                 if (msg->pixType == PIXY2_REP_ERROR) {                              // Cela pourrait être une trame d'erreur
-                    cr = (T_pixy2ErrorCode) Pixy2_buffer[dPointer];                 // Si c'est le cas, on copie le code d'erreur reçu dans la variable de retour
+                    cr = *(T_pixy2ErrorCode*) &Pixy2_buffer[dPointer];              // Si c'est le cas, on copie le code d'erreur reçu dans la variable de retour
                 } else cr = PIXY2_TYPE_ERROR;                                       // Si le type ne correspond à rien de normal on signale une erreur de type.
             }
             etat = idle;                                                            // On annoce que la pixy est libre
@@ -638,7 +636,7 @@ PIXY2::T_pixy2ErrorCode PIXY2::pixy2_getFPS (T_pixy2ReturnCode *framerate){
 
 PIXY2::T_pixy2ErrorCode PIXY2::pixy2_getBlocks (Byte sigmap, Byte maxBloc){
 
-    T_pixy2RcvHeader*   msg = (T_pixy2RcvHeader*) &Pixy2_buffer[hPointer];
+    T_pixy2RcvHeader    *msg = (T_pixy2RcvHeader*) &Pixy2_buffer[hPointer];
     T_pixy2ErrorCode    cr = PIXY2_OK;
     
     switch (etat) {
@@ -661,7 +659,7 @@ PIXY2::T_pixy2ErrorCode PIXY2::pixy2_getBlocks (Byte sigmap, Byte maxBloc){
                 Pixy2_numBlocks = dataSize / sizeof(T_pixy2Bloc);                   // On indique le nombre de blocs reçus
             } else {                                                                // Si ce n'est pas le bon type
                 if (msg->pixType == PIXY2_REP_ERROR) {                              // Cela pourrait être une trame d'erreur
-                    cr = (T_pixy2ErrorCode) Pixy2_buffer[dPointer];                 // Si c'est le cas, on copie le code d'erreur reçu dans la variable de retour
+                    cr = *(T_pixy2ErrorCode*) &Pixy2_buffer[dPointer];              // Si c'est le cas, on copie le code d'erreur reçu dans la variable de retour
                 } else cr = PIXY2_TYPE_ERROR;                                       // Si le type ne correspond à rien de normal on signale une erreur de type.
             }
             etat = idle;                                                            // On annoce que la pixy est libre
@@ -676,7 +674,7 @@ PIXY2::T_pixy2ErrorCode PIXY2::pixy2_getBlocks (Byte sigmap, Byte maxBloc){
 
 PIXY2::T_pixy2ErrorCode PIXY2::pixy2_getFeatures (){
 
-    T_pixy2RcvHeader*   msg = (T_pixy2RcvHeader*) &Pixy2_buffer[hPointer];
+    T_pixy2RcvHeader    *msg = (T_pixy2RcvHeader*) &Pixy2_buffer[hPointer];
     T_pixy2ErrorCode    cr = PIXY2_OK;
     T_pixy2LineFeature* lineFeature;
     int                 fPointer;                                                   // Pointeur sur une feature entière
@@ -687,7 +685,7 @@ PIXY2::T_pixy2ErrorCode PIXY2::pixy2_getFeatures (){
             return PIXY2_BAD_CHECKSUM;                                              // Si le checksum est faux on retourne une erreur
         }
     }
-    if (msg->pixType == PIXY2_REP_LINE) {                                           // On vérifie que la trame est du type convenable (REPONSE LIGNE)
+    if (msg->pixType == PIXY2_REP_LINE) {                                       // On vérifie que la trame est du type convenable (REPONSE LIGNE)
         fPointer = dPointer;                                                        // On pointe sur la premiere feature
         do {
             lineFeature = (T_pixy2LineFeature*) &Pixy2_buffer[fPointer];            // On mappe le pointeur de structure sur le buffer de réception des features.
@@ -733,10 +731,10 @@ PIXY2::T_pixy2ErrorCode PIXY2::pixy2_getMainFeature (Byte features){
     switch (etat) {
         case idle :                                                                 // Si la caméra est inactive
             wPointer = 0;                                                           // On remonte en haut du buffer
-            cr = PIXY2::pixy2_sndGetLineFeature(0, features);                       // On envoie la trame de demande de suivi de ligne
-            if (cr!= PIXY2_OK) return cr;                                           // S'il y a une erreur lors de l'envoi on ejecte !
+            cr = PIXY2::pixy2_sndGetLineFeature(0, features);                      // On envoie la trame de demande de suivi de ligne
+            if (cr!= PIXY2_OK) return cr;                                          // S'il y a une erreur lors de l'envoi on ejecte !
             etat = messageSent;                                                     // On passe à l'attente du message de réponse
-            cr = PIXY2_BUSY;                                                        // On signale à l'utilisateur que la caméra est maintenant occupée
+            cr = PIXY2_BUSY;                                                    // On signale à l'utilisateur que la caméra est maintenant occupée
             break;
             
         case dataReceived :                                                         // Quand on a reçu l'intégralité du message
@@ -751,7 +749,6 @@ PIXY2::T_pixy2ErrorCode PIXY2::pixy2_getMainFeature (Byte features){
 }
 
 PIXY2::T_pixy2ErrorCode PIXY2::pixy2_getAllFeature (Byte features){
-
     T_pixy2ErrorCode    cr = PIXY2_OK;
 
     switch (etat) {
@@ -776,7 +773,7 @@ PIXY2::T_pixy2ErrorCode PIXY2::pixy2_getAllFeature (Byte features){
 
 PIXY2::T_pixy2ErrorCode PIXY2::pixy2_setMode (Byte mode)
 {
-    T_pixy2RcvHeader*   msg = (T_pixy2RcvHeader*) &Pixy2_buffer[hPointer];
+    T_pixy2RcvHeader    *msg = (T_pixy2RcvHeader*) &Pixy2_buffer[hPointer];
     T_pixy2ErrorCode    cr = PIXY2_OK;
 
     switch (etat) {
@@ -796,7 +793,7 @@ PIXY2::T_pixy2ErrorCode PIXY2::pixy2_setMode (Byte mode)
             }
             if ((msg->pixType == PIXY2_REP_ACK) || (msg->pixType == PIXY2_REP_ERROR)) {
                                                                                     // On vérifie que la trame est du type convenable (ACK ou ERREUR)
-                cr = (T_pixy2ErrorCode) Pixy2_buffer[dPointer];                     // Si c'est le cas, on copie le code d'erreur reçu dans la variable de retour
+                cr = *(T_pixy2ErrorCode*) &Pixy2_buffer[dPointer];                  // Si c'est le cas, on copie le code d'erreur reçu dans la variable de retour
             } else cr = PIXY2_TYPE_ERROR;                                           // Si le type ne correspond à rien de normal on signale une erreur de type.
             etat = idle;                                                            // On annoce que la pixy est libre
             break;
@@ -810,7 +807,7 @@ PIXY2::T_pixy2ErrorCode PIXY2::pixy2_setMode (Byte mode)
 
 PIXY2::T_pixy2ErrorCode PIXY2::pixy2_setNextTurn (sWord angle)
 {
-    T_pixy2RcvHeader*   msg = (T_pixy2RcvHeader*) &Pixy2_buffer[hPointer];
+    T_pixy2RcvHeader    *msg = (T_pixy2RcvHeader*) &Pixy2_buffer[hPointer];
     T_pixy2ErrorCode    cr = PIXY2_OK;
 
     switch (etat) {
@@ -830,7 +827,7 @@ PIXY2::T_pixy2ErrorCode PIXY2::pixy2_setNextTurn (sWord angle)
             }
             if ((msg->pixType == PIXY2_REP_ACK) || (msg->pixType == PIXY2_REP_ERROR)) {
                                                                                     // On vérifie que la trame est du type convenable (ACK ou ERREUR)
-                cr = (T_pixy2ErrorCode) Pixy2_buffer[dPointer];                     // Si c'est le cas, on copie le code d'erreur reçu dans la variable de retour
+                cr = *(T_pixy2ErrorCode*) &Pixy2_buffer[dPointer];                  // Si c'est le cas, on copie le code d'erreur reçu dans la variable de retour
             } else cr = PIXY2_TYPE_ERROR;                                           // Si le type ne correspond à rien de normal on signale une erreur de type.
             etat = idle;                                                            // On annoce que la pixy est libre
             break;
@@ -844,7 +841,7 @@ PIXY2::T_pixy2ErrorCode PIXY2::pixy2_setNextTurn (sWord angle)
 
 PIXY2::T_pixy2ErrorCode PIXY2::pixy2_setDefaultTurn (sWord angle)
 {
-    T_pixy2RcvHeader*   msg = (T_pixy2RcvHeader*) &Pixy2_buffer[hPointer];
+    T_pixy2RcvHeader    *msg = (T_pixy2RcvHeader*) &Pixy2_buffer[hPointer];
     T_pixy2ErrorCode    cr = PIXY2_OK;
 
     switch (etat) {
@@ -864,7 +861,7 @@ PIXY2::T_pixy2ErrorCode PIXY2::pixy2_setDefaultTurn (sWord angle)
             }
             if ((msg->pixType == PIXY2_REP_ACK) || (msg->pixType == PIXY2_REP_ERROR)) {
                                                                                     // On vérifie que la trame est du type convenable (ACK ou ERREUR)
-                cr = (T_pixy2ErrorCode) Pixy2_buffer[dPointer];                     // Si c'est le cas, on copie le code d'erreur reçu dans la variable de retour
+                cr = *(T_pixy2ErrorCode*) &Pixy2_buffer[dPointer];                  // Si c'est le cas, on copie le code d'erreur reçu dans la variable de retour
             } else cr = PIXY2_TYPE_ERROR;                                           // Si le type ne correspond à rien de normal on signale une erreur de type.
             etat = idle;                                                            // On annoce que la pixy est libre
             break;
@@ -878,7 +875,7 @@ PIXY2::T_pixy2ErrorCode PIXY2::pixy2_setDefaultTurn (sWord angle)
 
 PIXY2::T_pixy2ErrorCode PIXY2::pixy2_setVector (Byte vectorIndex)
 {
-    T_pixy2RcvHeader*   msg = (T_pixy2RcvHeader*) &Pixy2_buffer[hPointer];
+    T_pixy2RcvHeader    *msg = (T_pixy2RcvHeader*) &Pixy2_buffer[hPointer];
     T_pixy2ErrorCode    cr = PIXY2_OK;
 
     switch (etat) {
@@ -898,7 +895,7 @@ PIXY2::T_pixy2ErrorCode PIXY2::pixy2_setVector (Byte vectorIndex)
             }
             if ((msg->pixType == PIXY2_REP_ACK) || (msg->pixType == PIXY2_REP_ERROR)) {
                                                                                     // On vérifie que la trame est du type convenable (ACK ou ERREUR)
-                cr = (T_pixy2ErrorCode) Pixy2_buffer[dPointer];                     // Si c'est le cas, on copie le code d'erreur reçu dans la variable de retour
+                cr = *(T_pixy2ErrorCode*) &Pixy2_buffer[dPointer];                  // Si c'est le cas, on copie le code d'erreur reçu dans la variable de retour
             } else cr = PIXY2_TYPE_ERROR;                                           // Si le type ne correspond à rien de normal on signale une erreur de type.
             etat = idle;                                                            // On annoce que la pixy est libre
             break;
@@ -913,7 +910,7 @@ PIXY2::T_pixy2ErrorCode PIXY2::pixy2_setVector (Byte vectorIndex)
 
 PIXY2::T_pixy2ErrorCode PIXY2::pixy2_ReverseVector (void)
 {
-    T_pixy2RcvHeader*   msg = (T_pixy2RcvHeader*) &Pixy2_buffer[hPointer];
+    T_pixy2RcvHeader    *msg = (T_pixy2RcvHeader*) &Pixy2_buffer[hPointer];
     T_pixy2ErrorCode    cr = PIXY2_OK;
 
     switch (etat) {
@@ -933,7 +930,7 @@ PIXY2::T_pixy2ErrorCode PIXY2::pixy2_ReverseVector (void)
             }
             if ((msg->pixType == PIXY2_REP_ACK) || (msg->pixType == PIXY2_REP_ERROR)) {
                                                                                     // On vérifie que la trame est du type convenable (ACK ou ERREUR)
-                cr = (T_pixy2ErrorCode) Pixy2_buffer[dPointer];                  // Si c'est le cas, on copie le code d'erreur reçu dans la variable de retour
+                cr = *(T_pixy2ErrorCode*) &Pixy2_buffer[dPointer];                  // Si c'est le cas, on copie le code d'erreur reçu dans la variable de retour
             } else cr = PIXY2_TYPE_ERROR;                                           // Si le type ne correspond à rien de normal on signale une erreur de type.
             etat = idle;                                                            // On annoce que la pixy est libre
             break;
@@ -945,9 +942,9 @@ PIXY2::T_pixy2ErrorCode PIXY2::pixy2_ReverseVector (void)
     return cr;
 }
 
-PIXY2::T_pixy2ErrorCode PIXY2::pixy2_getRGB (Word x, Word y, Byte saturate, T_pixy2Pixel *pixel){
+PIXY2::T_pixy2ErrorCode PIXY2::pixy2_getRGB (Word x, Word y, Byte saturate, T_pixy2Pixel **pixel){
 
-    T_pixy2RcvHeader*   msg = (T_pixy2RcvHeader*) &Pixy2_buffer[hPointer];
+    T_pixy2RcvHeader    *msg = (T_pixy2RcvHeader*) &Pixy2_buffer[hPointer];
     T_pixy2ErrorCode    cr = PIXY2_OK;
     
     switch (etat) {
@@ -959,17 +956,17 @@ PIXY2::T_pixy2ErrorCode PIXY2::pixy2_getRGB (Word x, Word y, Byte saturate, T_pi
             cr = PIXY2_BUSY;                                                        // On signale à l'utilisateur que la caméra est maintenant occupée
             break;
             
-        case dataReceived :                                                         // Quand on a reçu l'intégralité du message
+        case dataReceived :                                                      // Quand on a reçu l'intégralité du message
             if (frameContainChecksum) {                                             // Si la trame contient un checksum
                 if (pixy2_validateChecksum (&Pixy2_buffer[hPointer]) != 0) {        // On lance la validation du checksum
                     return PIXY2_BAD_CHECKSUM;                                      // Si le checksum est faux on retourne une erreur
                 }
             }
             if (msg->pixType == PIXY2_REP_ACK) {                                    // On vérifie que la trame est du type convenable (REPONSE ACK)
-                pixel = (T_pixy2Pixel*) &Pixy2_buffer[dPointer];                    // On mappe le pointeur de structure sur le buffer de réception.
+                *pixel = (T_pixy2Pixel*) &Pixy2_buffer[dPointer];                    // On mappe le pointeur de structure sur le buffer de réception.
             } else {                                                                // Si ce n'est pas le bon type
                 if (msg->pixType == PIXY2_REP_ERROR) {                              // Cela pourrait être une trame d'erreur
-                    cr = (T_pixy2ErrorCode) &Pixy2_buffer[dPointer];                // Si c'est le cas, on copie le code d'erreur reçu dans la variable de retour
+                    cr = *(T_pixy2ErrorCode*) &Pixy2_buffer[dPointer];              // Si c'est le cas, on copie le code d'erreur reçu dans la variable de retour
                 } else cr = PIXY2_TYPE_ERROR;                                       // Si le type ne correspond à rien de normal on signale une erreur de type.
             }
             etat = idle;                                                            // On annoce que la pixy est libre
@@ -988,7 +985,7 @@ PIXY2::T_pixy2ErrorCode PIXY2::pixy2_validateChecksum (Byte* tab){
     Word    i, sum = 0;
     T_Word  *tmp;
     
-    for (i=0; i<*(tab+3); i++)   sum = sum + tab[PIXY2_CSHEADERSIZE + i];
+    for (i=0; i<*(tab+3);i++)   sum = sum + *(tab + PIXY2_CSHEADERSIZE + i);
     tmp = (T_Word*) (tab+4);
     
     if (tmp->mot == sum) return PIXY2_OK;
