@@ -2,8 +2,9 @@
  * @file pixy2.h
  * @brief Header file containing the pixy2 class compatible with mbed-os 6 (baremetal or multithread) using UART interface with non blocking functions
  * @author Hugues Angelis - Théo Le Paih - Wael Hazami
- * @date March 2022
- *
+ * @date December 2022
+ * @version 3
+ * 
  * @section LICENSE
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -116,9 +117,9 @@ public :
  * 
  * int main()
  * {
- *     T_pixy2ErrorCode rCode;  // return Code
- *     T_pixy2Version *version; // Version for Pixy2 (no allocation needed)
- *     T_pixy2Bloc *bloc;       // Easy to use Color Code Bloc (not mandatory, no allocation needed)
+ *     T_pixy2ErrorCode rCode;              // return Code
+ *     T_pixy2Version *version = nullptr;   // Version for Pixy2 (no allocation needed)
+ *     T_pixy2Bloc *bloc = nullptr;         // Easy to use Color Code Bloc (not mandatory, no allocation needed)
  * 
  *     printf("\nPixy running on Mbed OS %d.%d.%d.\n", MBED_MAJOR_VERSION, MBED_MINOR_VERSION, MBED_PATCH_VERSION);
  * 
@@ -145,7 +146,7 @@ public :
  *     printf("Reading Version : ");
  *     do {
  *         // Asking for Pixy2 Version
- *         rCode = cam.pixy2_getVersion (&version); //address of "version" will be somewhere in the reception buffer
+ *         rCode = cam.pixy2_getVersion (version); //"version" will be set to an address pointing somewhere in the reception buffer
  *     } while (rCode == PIXY2_BUSY); // waiting for acknowledge (ie : order processed)
  *
  *     // here you may check if return code indicate an erroneous response
@@ -448,10 +449,10 @@ typedef struct {
  * @note https://docs.pixycam.com/wiki/doku.php?id=wiki:v2:porting_guide
  * @note Function Documentation :
  * @note https://docs.pixycam.com/wiki/doku.php?id=wiki:v2:general_api
- * @param ptrVersion T_pixy2Version (structure, passed by address) : pointer to a pointer of the version data structure
+ * @param ptrVersion T_pixy2Version (structure, passed by address) : pointer to the version data structure (no memory allocation needed)
  * @return T_pixy2ErrorCode : error code.
  */
-T_pixy2ErrorCode pixy2_getVersion (T_pixy2Version **ptrVersion);
+T_pixy2ErrorCode pixy2_getVersion (T_pixy2Version *ptrVersion);
 
 /**
  * Get the width and height of the frames used by the camera's current program.
@@ -460,10 +461,10 @@ T_pixy2ErrorCode pixy2_getVersion (T_pixy2Version **ptrVersion);
  * @note https://docs.pixycam.com/wiki/doku.php?id=wiki:v2:porting_guide
  * @note Function Documentation :
  * @note https://docs.pixycam.com/wiki/doku.php?id=wiki:v2:general_api
- * @param ptrResolution T_pixy2Resolution (structure, passed by address) : pointer to a pointer of the resolution data structure
+ * @param ptrResolution T_pixy2Resolution (structure, passed by address) : pointer to the resolution data structure (no memory allocation needed)
  * @return T_pixy2ErrorCode : error code.
  */
-T_pixy2ErrorCode pixy2_getResolution (T_pixy2Resolution **ptrResolution);
+T_pixy2ErrorCode pixy2_getResolution (T_pixy2Resolution *ptrResolution);
 
 /**
  * Set the relative exposure level of Pixy2's image sensor.
@@ -525,10 +526,10 @@ T_pixy2ErrorCode pixy2_setLamp (Byte upper, Byte lower);
  * @note https://docs.pixycam.com/wiki/doku.php?id=wiki:v2:porting_guide
  * @note Function Documentation :
  * @note https://docs.pixycam.com/wiki/doku.php?id=wiki:v2:general_api
- * @param framerate T_pixy2ReturnCode (structure, passed by address) : number of frame per second (between 2 and 62) 
+ * @param framerate T_pixy2ReturnCode (long int, passed by address) : pointer to a number of frame per second (between 2 and 62) - no memory allocation needed 
  * @return T_pixy2ErrorCode : error code.
  */
-T_pixy2ErrorCode pixy2_getFPS (T_pixy2ReturnCode **framerate);
+T_pixy2ErrorCode pixy2_getFPS (T_pixy2ReturnCode *framerate);
 
 /**
  * Get all detected color blocks in the most recent frame.
@@ -691,10 +692,10 @@ T_pixy2ErrorCode pixy2_ReverseVector (void);
  * @param x         Word (passed by value)                      : X coordinate of the center of de 5x5 pixels square (in pixel, between 0 and 315) 
  * @param y         Word (passed by value)                      : Y coordinate of the center of de 5x5 pixels square (in pixel, between 0 and 207)
  * @param saturate  Byte (passed by value)                      : scale the 3 RGB components so that the highest one of the 3 RGB components is set to 255 (boolean : zero or non-zero) 
- * @param pixel     T_pixy2Pixel (structure, passed by address) : RGB pixel component. 
+ * @param pixel     T_pixy2Pixel (structure, passed by address) : pointer to a RGB pixel component - no memory allocation needed. 
  * @return T_pixy2ErrorCode                                     : error code.
  */
-T_pixy2ErrorCode pixy2_getRGB (Word x, Word y, Byte saturate, T_pixy2Pixel **pixel);
+T_pixy2ErrorCode pixy2_getRGB (Word x, Word y, Byte saturate, T_pixy2Pixel *pixel);
 
 // Public Global Variables
 /**
@@ -1058,11 +1059,9 @@ typedef struct {
     Word                pixChecksum;
 }T_pixy2RcvHeader;
 
-protected :
-
 UnbufferedSerial*  _Pixy2;
 
-// POUR DEBUG //
+// FOR DEBUG PURPOSE //
 T_Pixy2State getEtat();
 void affDataSize();
 
