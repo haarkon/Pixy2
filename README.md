@@ -28,9 +28,9 @@ The example shows you how to use the Pixy2 Library.
  
  int main()
  {
-     PIXY2::T_pixy2ErrorCode rCode;  // return Code
-     PIXY2::T_pixy2Version *version; // Version for Pixy2 (no allocation needed)
-     PIXY2::T_pixy2Bloc *bloc;       // Easy to use Color Code Bloc (not mandatory, no allocation needed)
+     PIXY2::T_pixy2ErrorCode rCode;            // return Code
+     PIXY2::T_pixy2Version *version = nullptr; // Version for Pixy2 (no allocation needed)
+     PIXY2::T_pixy2Bloc *bloc = nullptr;       // Easy to use Color Code Bloc (not mandatory, no allocation needed)
  
      printf("\nPixy running on Mbed OS %d.%d.%d.\n", MBED_MAJOR_VERSION, MBED_MINOR_VERSION, MBED_PATCH_VERSION);
  
@@ -57,7 +57,7 @@ The example shows you how to use the Pixy2 Library.
      printf("Reading Version : ");
      do {
          // Asking for Pixy2 Version
-         rCode = cam.pixy2_getVersion (&version); //address of "version" will be somewhere in the reception buffer
+         rCode = cam.pixy2_getVersion (version); // this will set address of "version" somewhere in the reception buffer
      } while (rCode == PIXY2_BUSY); // waiting for acknowledge (ie : order processed)
  
      // here you may check if return code indicate an erroneous response
@@ -85,13 +85,13 @@ The example shows you how to use the Pixy2 Library.
              // Parsing thru signature blocs
              for (int i=0; i < cam.Pixy2_numBlocks; i++) {
                  
-                 bloc = &cam.Pixy2_blocks[i]; // For a ease usage - still not mandatory - else use cam->Pixy2_blocks[i].<field> to access data 
+                 bloc = &cam.Pixy2_blocks[i]; // For a easy usage - still not mandatory - else use cam->Pixy2_blocks[i].<field> instead of bloc-><field> 
                  
                  printf("bloc %d - sig = %d\n", i+1, bloc->pixSignature); // Display block siagnature
                  printf("\tposition : X = %d, Y = %d\n", bloc->pixX, bloc->pixY); // Display block position
                  printf("\tsize : H = %d, W = %d\n", bloc->pixHeight, bloc->pixWidth); // Display block size
              }
-             ThisThread::sleep_for(WAIT_TIME_MS); // Only usefull for a debug
+             ThisThread::sleep_for(WAIT_TIME_MS); // Only usefull for a printf debug
          } // Here you may check for erroneous responses
      }
  }
