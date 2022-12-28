@@ -8,7 +8,8 @@ This library is a Mbed Library (https://os.mbed.com/) that use UART (@ 230Kbps) 
 
 The example shows you how to use the Pixy2 Library.
 
- ```include "mbed.h"
+ ```c++
+ #include "mbed.h"
  #include "pixy2.h"
  
  #define WAIT_TIME_MS 100ms 
