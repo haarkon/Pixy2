@@ -4,6 +4,13 @@
 
 This library is a Mbed Library (https://os.mbed.com/) that use UART (@ 230Kbps) to communicate with a Pixy2 smart camera (https://pixycam.com/) using serial IRQ to avoid blocking functions.
 
+## Authors
+
+- [haarkon](https://github.com/haarkon)
+- Wael Hazami
+- Theo Le Paih
+
+
 # Pixy2 usage example
 
 The example shows you how to use the Pixy2 Library.
