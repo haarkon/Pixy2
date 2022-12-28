@@ -10,6 +10,9 @@ This library is a Mbed Library (https://os.mbed.com/) that use UART (@ 230Kbps) 
 - Wael Hazami
 - Theo Le Paih
 
+# Documentation
+
+Pixy2.h contain a fully written DOXYGEN format documentation.
 
 # Pixy2 usage example
 
@@ -93,6 +96,3 @@ The example shows you how to use the Pixy2 Library.
      }
  }
 ``` 
-# Documentation
-
-Pixy2.h contain a fully written DOXYGEN format documentation.
