@@ -8,7 +8,7 @@ This library is a Mbed Library (https://os.mbed.com/) that use UART communicatio
 
 The example shows you how to use the Pixy2 Library.
 
- #include "mbed.h"
+ ```include "mbed.h"
  #include "pixy2.h"
  
  #define WAIT_TIME_MS 100ms 
@@ -84,5 +84,5 @@ The example shows you how to use the Pixy2 Library.
          } // Here you may check for erroneous responses
      }
  }
- 
+``` 
  
