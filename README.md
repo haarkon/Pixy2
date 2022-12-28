@@ -1,72 +1,88 @@
 ![](./resources/official_armmbed_example_badge.png)
-# Blinky Mbed OS example
 
-The example project is part of the [Arm Mbed OS Official Examples](https://os.mbed.com/code/) and is the [getting started example for Mbed OS](https://os.mbed.com/docs/mbed-os/latest/quick-start/index.html). It contains an application that repeatedly blinks an LED on supported [Mbed boards](https://os.mbed.com/platforms/).
+# Pixy2 Library Summary
 
-You can build the project with all supported [Mbed OS build tools](https://os.mbed.com/docs/mbed-os/latest/tools/index.html). However, this example project specifically refers to the command-line interface tool [Arm Mbed CLI](https://github.com/ARMmbed/mbed-cli#installing-mbed-cli).
-(Note: To see a rendered example you can import into the Arm Online Compiler, please see our [import quick start](https://os.mbed.com/docs/mbed-os/latest/quick-start/online-with-the-online-compiler.html#importing-the-code).)
+This library is a Mbed Library (https://os.mbed.com/) that use UART communication (@ 230Kbps) to communicate with a Pixy2 smart camera (https://pixycam.com/) using serial IRQ to avoid blocking functions.
 
-## Mbed OS build tools
+# Pixy2 usage example
 
-### Mbed CLI 2
-Starting with version 6.5, Mbed OS uses Mbed CLI 2. It uses Ninja as a build system, and CMake to generate the build environment and manage the build process in a compiler-independent manner. If you are working with Mbed OS version prior to 6.5 then check the section [Mbed CLI 1](#mbed-cli-1).
-1. [Install Mbed CLI 2](https://os.mbed.com/docs/mbed-os/latest/build-tools/install-or-upgrade.html).
-1. From the command-line, import the example: `mbed-tools import mbed-os-example-blinky`
-1. Change the current directory to where the project was imported.
+The example shows you how to use the Pixy2 Library.
 
-### Mbed CLI 1
-1. [Install Mbed CLI 1](https://os.mbed.com/docs/mbed-os/latest/quick-start/offline-with-mbed-cli.html).
-1. From the command-line, import the example: `mbed import mbed-os-example-blinky`
-1. Change the current directory to where the project was imported.
-
-## Application functionality
-
-The `main()` function is the single thread in the application. It toggles the state of a digital output connected to an LED on the board.
-
-**Note**: This example requires a target with RTOS support, i.e. one with `rtos` declared in `supported_application_profiles` in `targets/targets.json` in [mbed-os](https://github.com/ARMmbed/mbed-os). For non-RTOS targets (usually with small memory sizes), please use [mbed-os-example-blinky-baremetal](https://github.com/ARMmbed/mbed-os-example-blinky-baremetal) instead.
-
-## Building and running
-
-1. Connect a USB cable between the USB port on the board and the host computer.
-1. Run the following command to build the example project and program the microcontroller flash memory:
-
-    * Mbed CLI 2
-
-    ```bash
-    $ mbed-tools compile -m <TARGET> -t <TOOLCHAIN> --flash
-    ```
-
-    * Mbed CLI 1
-
-    ```bash
-    $ mbed compile -m <TARGET> -t <TOOLCHAIN> --flash
-    ```
-
-Your PC may take a few minutes to compile your code.
-
-The binary is located at:
-* **Mbed CLI 2** - `./cmake_build/mbed-os-example-blinky.bin`</br>
-* **Mbed CLI 1** - `./BUILD/<TARGET>/<TOOLCHAIN>/mbed-os-example-blinky.bin`
-
-Alternatively, you can manually copy the binary to the board, which you mount on the host computer over USB.
-
-## Expected output
-The LED on your target turns on and off every 500 milliseconds.
-
-
-## Troubleshooting
-If you have problems, you can review the [documentation](https://os.mbed.com/docs/latest/tutorials/debugging.html) for suggestions on what could be wrong and how to fix it.
-
-## Related Links
-
-* [Mbed OS Stats API](https://os.mbed.com/docs/latest/apis/mbed-statistics.html).
-* [Mbed OS Configuration](https://os.mbed.com/docs/latest/reference/configuration.html).
-* [Mbed OS Serial Communication](https://os.mbed.com/docs/latest/tutorials/serial-communication.html).
-* [Mbed OS bare metal](https://os.mbed.com/docs/mbed-os/latest/reference/mbed-os-bare-metal.html).
-* [Mbed boards](https://os.mbed.com/platforms/).
-
-### License and contributions
-
-The software is provided under Apache-2.0 license. Contributions to this project are accepted under the same license. Please see [CONTRIBUTING.md](./CONTRIBUTING.md) for more info.
-
-This project contains code from other projects. The original license text is included in those source files. They must comply with our license guide.
+ #include "mbed.h"
+ #include "pixy2.h"
+ 
+ #define WAIT_TIME_MS 100ms 
+ DigitalOut led1(LED1);
+ PIXY2 cam (PD_5, PD_6, 230000);
+ 
+ int main()
+ {
+     PIXY2::T_pixy2ErrorCode rCode;  // return Code
+     PIXY2::T_pixy2Version *version; // Version for Pixy2 (no allocation needed)
+     PIXY2::T_pixy2Bloc *bloc;       // Easy to use Color Code Bloc (not mandatory, no allocation needed)
+ 
+     printf("\nPixy running on Mbed OS %d.%d.%d.\n", MBED_MAJOR_VERSION, MBED_MINOR_VERSION, MBED_PATCH_VERSION);
+ 
+     printf("Playing with RGB LED : ");
+ 
+     do {
+         // switching on red led
+         rCode = cam.pixy2_setLED (0xFF,0,0);
+     } while (rCode == PIXY2_BUSY); // waiting for PIXY2 acknowledge (ie : order processed)
+ 
+     // here you may check if return code indicate an erroneous response
+ 
+     ThisThread::sleep_for(500ms);  // to allow visual detection 
+ 
+     do {
+         // Switching off red led
+         rCode = cam.pixy2_setLED (0,0,0);
+     } while (rCode == PIXY2_BUSY); // waiting for acknowledge (ie : order processed)
+ 
+     // here you may check if return code indicate an erroneous response
+ 
+     printf("done\n");
+ 
+     printf("Reading Version : ");
+     do {
+         // Asking for Pixy2 Version
+         rCode = cam.pixy2_getVersion (&version); //address of "version" will be somewhere in the reception buffer
+     } while (rCode == PIXY2_BUSY); // waiting for acknowledge (ie : order processed)
+ 
+     // here you may check if return code indicate an erroneous response
+ 
+     printf("done\n");
+ 
+     printf("Pixy : %s (HW : %d) - FW : %d.%d.%d\n", version->pixHFString, version->pixHWVersion, version->pixFWVersionMaj, version->pixFWVersionMin, version->pixFWBuild);
+     
+     // one must have already set signature with pixyMon2 to track colors
+     printf("\nNow Tracking Colors\n");
+ 
+     while (true)
+     {
+         // Ordering to track all color signature
+ 
+         // As tracking may take some time we use the main loop with a non blocking function to allow other task to be performed while camera is processing the image
+         // Order is sent once, then function will return PIXY2_BUSY until color tracking result are made available
+         if (cam.pixy2_getBlocks(255, 10) == PIXY2_OK) {
+ 
+             led1 = !led1; //visual debug (not mandatory)
+ 
+             // Displaying number of detected signature blocks
+             printf("\nfound : %d blocs\n",cam.Pixy2_numBlocks);
+ 
+             // Parsing thru signature blocs
+             for (int i=0; i < cam.Pixy2_numBlocks; i++) {
+                 
+                 bloc = &cam.Pixy2_blocks[i]; // For a ease usage - still not mandatory - else use cam->Pixy2_blocks[i].<field> to access data 
+                 
+                 printf("bloc %d - sig = %d\n", i+1, bloc->pixSignature); // Display block siagnature
+                 printf("\tposition : X = %d, Y = %d\n", bloc->pixX, bloc->pixY); // Display block position
+                 printf("\tsize : H = %d, W = %d\n", bloc->pixHeight, bloc->pixWidth); // Display block size
+             }
+             ThisThread::sleep_for(WAIT_TIME_MS); // Only usefull for a debug
+         } // Here you may check for erroneous responses
+     }
+ }
+ 
+ 
