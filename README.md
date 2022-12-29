@@ -1,18 +1,42 @@
 ![](./resources/official_armmbed_example_badge.png)
 
-# Pixy2 Library Summary
+# Pixy 2 ans 2.1 Library Summary
 
-This library is a Mbed Library (https://os.mbed.com/) that use UART (@ 230Kbps) to communicate with a Pixy2 smart camera (https://pixycam.com/) using serial IRQ to avoid blocking functions.
+This library is a [Mbed Library](https://os.mbed.com/) that use UART (@ 230Kbps) to communicate with a [Pixy2 smart camera](https://pixycam.com/) using serial IRQ to obtain non blocking functions.
 
 ## Authors
 
-- [haarkon](https://github.com/haarkon)
+- [haarkon](https://github.com/haarkon) - Head
 - Wael Hazami
 - Theo Le Paih
+.
 
 # Documentation
 
 Pixy2.h contain a fully written DOXYGEN format documentation.
+You may find the whole documentation and a FAQ on [PIXY website](https://pixycam.com/)
+
+The pixy 2 (and 2.1) use a request/response algorithm: User send a request, which is then processed by the camera, who then respond to the user.
+This cause a (more or less long) delay between the order and the response. Waiting for the response may take a long time (sometime around 1/60 second).
+That's why this library is made to be non blocking. All methods return immediatly with an error code giving to the user hints about what's camera is doing:
+- PIXY2::PIXY2_OK   -> Order has been processed and a response can be read
+- PIXY2::PIXY2_BUSY -> Camera is processing your order, no response is available
+- All other codes   -> An error has occured, no data will be produced
+.
+
+The library stores received data in a large (256 bytes) home made circular buffer.
+
+User can access to response datas by using 2 possibilities :
+- In a single structure response, you may either:
+  - read the global variable associated with the requested data
+  - use a pointer that will be mapped on the reception buffer
+  .
+- In a multiple structure (either many types and/or many time) response, you must access each type of variable using 2 global variables:
+  - an enumerator that indicate how many time the same structure has been found
+  - an array of the structure
+  .
+.
+You may find an example just below.
 
 # Pixy2 usage example
 
