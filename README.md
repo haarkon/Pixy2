@@ -6,7 +6,7 @@ This library is a [Mbed Library](https://os.mbed.com/) that use UART (@ 230Kbps)
 
 ## Authors
 
-- [haarkon](https://github.com/haarkon) - Head
+- [haarkon](https://github.com/haarkon)
 - Wael Hazami
 - Theo Le Paih
 
