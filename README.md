@@ -17,7 +17,9 @@ You may find the whole documentation and a FAQ on [PIXY website](https://pixycam
 
 The pixy 2 (and 2.1) use a request/response algorithm: User send a request, which is then processed by the camera, who then respond to the user.
 This cause a (more or less long) delay between the order and the response. Waiting for the response may take a long time (sometime around 1/60 second).
-That's why this library is made to be non blocking. All methods return immediatly with an error code giving to the user hints about what's camera is doing:
+That's why this library is made to be non blocking.
+
+All methods return immediatly with an error code giving to the user hints about what's camera is doing:
 - PIXY2::PIXY2_OK   -> Order has been processed and a response can be read
 - PIXY2::PIXY2_BUSY -> Camera is processing your order, no response is available
 - All other codes   -> An error has occured, no data will be produced
