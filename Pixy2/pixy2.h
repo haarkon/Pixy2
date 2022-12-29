@@ -100,8 +100,14 @@ public :
  * \class PIXY2 pixy2.h
  * Pixy2 : CMU CAM 5 - Smart camera - Using UART interface - non blocking
  * \brief More informations at http://www.pixycam.com/
- * \note We use pointer to pointer in order to connect data received from UART and stored in a circular buffer, with structured objects (passed by address to the function)
- * of the class that point to the reception buffer. You don't have to allocate memory for those objects as they point directly into the reception buffer : see example below
+ * \note As Pixy2 use a Request/Response handshake (ie: camera wait for an order before sending datas), we only received bytes when order has been processed. We then store those datas
+ * in a large buffer (256 bytes). There are 3 ways to get the response depending on the type of method used :
+ * - Error code: when just a acknowledge is expected, you'll get it directly from the error code (ie : when you'll get PIXY2::PIXY_OK)
+ * - Structure mapping: 
+ *   - when a single answer is expected, we map a structure (given by the user) directly on the receive buffer, therfore no need to allocate memory for this structure
+ *   - when multiple answers are expected, we use global variables (one indicating how many data have been received and as many as needed array mapping the receive buffer) 
+ *   .
+ * It's then easy as you'll see in the example below to communicate with the camera.
  * \note Sending an order (ie : transmitting data to the camera is blocking), reception is non blocking
  * \note As all functions are non blocking (ie : they return immediately after sending the order) and as communication, and image processing at 30 FPS, may take some time 
  * you must wait for the function to complete its task before using the result or sending another order. When function return something else than PIXY2_BUSY then task has been processed.
