@@ -93,9 +93,9 @@ The example shows you how to use the Pixy2 Library.
  
      while (true)
      {
-         // Ordering to track all color signature
+         // Ordering to track the 10 biggest blocs of all color signature
  
-         // As tracking may take some time we use the main loop with a non blocking function to allow other task to be performed while camera is processing the image
+         // As tracking may take some time, we use the main loop with a non blocking function to allow other task to be performed while camera is processing the image
          // Order is sent once, then function will return PIXY2_BUSY until color tracking result are made available
          if (cam.pixy2_getBlocks(255, 10) == PIXY2_OK) {
  
