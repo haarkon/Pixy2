@@ -31,6 +31,7 @@ User can access to response datas by using 2 possibilities :
 - In a multiple structure (either many types and/or many time) response, you must access each type of variable using 2 global variables:
   - an enumerator that indicate how many time the same structure has been found
   - an array of the structure
+
 You may find an example just below.
 
 # Pixy2 usage example
