@@ -26,7 +26,7 @@ All methods return immediatly with an error code giving to the user hints about 
 
 The library stores received data in a large (256 bytes) home made circular buffer.
 
-User can access to response datas by using 2 possibilities :
+User can access to response datas by using 2 ways :
 - In a single structure response, you may either:
   - read the global variable associated with the requested data
   - use a pointer that will be mapped on the reception buffer
