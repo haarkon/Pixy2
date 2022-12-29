@@ -30,7 +30,7 @@ User can access to response datas by using 2 ways :
 - In a single structure response, you may either:
   - read the global variable associated with the requested data
   - use a pointer that will be mapped on the reception buffer
-- In a multiple structure (either many types and/or many time) response, you must access each type of variable using 2 global variables:
+- In a multiple structure (either of many types and/or many times) response, you must access each type of variable using 2 global variables:
   - an enumerator that indicate how many time the same structure has been found
   - an array of the structure
 
