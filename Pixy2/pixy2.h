@@ -705,58 +705,76 @@ T_pixy2ErrorCode pixy2_getRGB (Word x, Word y, Byte saturate, T_pixy2Pixel *pixe
 
 // Public Global Variables
 /**
- * @var Byte Pixy2_numBlocks
  * @brief number of color blocks in Pixy2_blocks
+ * @var Byte Pixy2_numBlocks
  */
 Byte                Pixy2_numBlocks;
 
 /**
- * @var T_pixy2Bloc Pixy2_blocks[]
  * @brief color blocks detected in the last frame
+ * @var T_pixy2Bloc Pixy2_blocks[]
  */
 T_pixy2Bloc         *Pixy2_blocks;
 
 /**
- * @var Byte Pixy2_numVectors
  * @brief number of vectors in Pixy2_vectors
+ * @var Byte Pixy2_numVectors
  */
 Byte                Pixy2_numVectors;
 
 /**
- * @var T_pixy2Vector Pixy2_vectors[]
  * @brief vectors detected in the last frame
+ * @var T_pixy2Vector Pixy2_vectors[]
  */
 T_pixy2Vector       *Pixy2_vectors;
 
 /**
- * @var Byte Pixy2_numIntersections
  * @brief number of intersections in Pixy2_intersections
+ * @var Byte Pixy2_numIntersections
  */
 Byte                Pixy2_numIntersections;
 
 /**
- * @var T_pixy2Intersection Pixy2_intersections[]
  * @brief intersections detected in the last frame
+ * @var T_pixy2Intersection Pixy2_intersections[]
  */
 T_pixy2Intersection *Pixy2_intersections;
 
 /**
- * @var T_pixy2InterLine Pixy2_interLines[]
  * @brief lines detected in the last frame
+ * @var T_pixy2InterLine Pixy2_interLines[]
  */
 T_pixy2InterLine *Pixy2_interLines;
 
 /**
- * @var Byte Pixy2_numBarcodes
  * @brief number of barcodes in Pixy2_blocks
+ * @var Byte Pixy2_numBarcodes
  */
 Byte                Pixy2_numBarcodes;
 
 /**
- * @var T_pixy2BarCode Pixy2_barcodes[]
  * @brief bacodes detected in the last frame
+ * @var T_pixy2BarCode Pixy2_barcodes[]
  */
 T_pixy2BarCode      *Pixy2_barcodes;
+
+/**
+ * @brief version of the pixy camera
+ * @var T_pixy2Version Pixy2_version
+ */
+T_pixy2Version      Pixy2_version;
+
+/**
+ * @brief resolution of the pixy camera
+ * @var T_pixy2Resolution Pixy2_resolution
+ */
+T_pixy2Resolution   Pixy2_resolution;
+
+/**
+ * @brief framerate of the pixy camera
+ * @var T_pixy2ReturnCode Pixy2_framerate
+ */
+T_pixy2ReturnCode   Pixy2_framerate;
 
 private :
 

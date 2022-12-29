@@ -410,7 +410,8 @@ PIXY2::T_pixy2ErrorCode PIXY2::pixy2_getVersion (T_pixy2Version *ptrVersion){
                 }
             }
             if (msg->pixType == PIXY2_REP_VERS) {                                   // On vérifie que la trame est du type convenable (REPONSE VERSION)
-                ptrVersion = (T_pixy2Version*) &Pixy2_buffer[dPointer];             // On mappe le pointeur de structure sur le buffer de réception.         
+                ptrVersion = (T_pixy2Version*) &Pixy2_buffer[dPointer];             // On mappe le pointeur de structure sur le buffer de réception.
+                Pixy2_version = (T_pixy2Version) Pixy2_buffer[dPointer];            // On met à jour la variable globale.
             } else {                                                                // Si ce n'est pas le bon type
                 if (msg->pixType == PIXY2_REP_ERROR) {                              // Cela pourrait être une trame d'erreur
                     cr = (T_pixy2ErrorCode) Pixy2_buffer[dPointer];                 // Si c'est le cas, on copie le code d'erreur reçu dans la variable de retour
@@ -448,6 +449,7 @@ PIXY2::T_pixy2ErrorCode PIXY2::pixy2_getResolution (T_pixy2Resolution *ptrResolu
             }
             if (msg->pixType == PIXY2_REP_RESOL) {                                  // On vérifie que la trame est du type convenable (REPONSE RESOLUTION)
                 ptrResolution = (T_pixy2Resolution*) &Pixy2_buffer[dPointer];       // On mappe le pointeur de structure sur le buffer de réception.
+                Pixy2_resolution = (T_pixy2Resolution) Pixy2_buffer[dPointer];      // On met à jour la variable globale.
             } else {                                                                // Si ce n'est pas le bon type
                 if (msg->pixType == PIXY2_REP_ERROR) {                              // Cela pourrait être une trame d'erreur
                     cr = (T_pixy2ErrorCode) Pixy2_buffer[dPointer];                 // Si c'est le cas, on copie le code d'erreur reçu dans la variable de retour
@@ -621,6 +623,7 @@ PIXY2::T_pixy2ErrorCode PIXY2::pixy2_getFPS (T_pixy2ReturnCode *framerate){
             }
             if (msg->pixType == PIXY2_REP_FPS) {                                    // On vérifie que la trame est du type convenable (REPONSE FPS)
                 framerate = (T_pixy2ReturnCode*) &Pixy2_buffer[dPointer];           // On mappe le pointeur de structure sur le buffer de réception.
+                Pixy2_framerate = (T_pixy2ReturnCode) Pixy2_buffer[dPointer];       // On met à jour la variable globale.
             } else {                                                                // Si ce n'est pas le bon type
                 if (msg->pixType == PIXY2_REP_ERROR) {                              // Cela pourrait être une trame d'erreur
                     cr = (T_pixy2ErrorCode) Pixy2_buffer[dPointer];                 // Si c'est le cas, on copie le code d'erreur reçu dans la variable de retour
